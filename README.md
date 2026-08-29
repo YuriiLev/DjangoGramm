@@ -2,7 +2,6 @@
 
 A social photo-sharing application built with Django. Users register by email, create one or more profiles, publish posts with multiple images and tags, follow other profiles, and read a personalised feed.
 
-> 🚧 **In development.** Rebuilt from scratch — see [ROADMAP.md](ROADMAP.md) for progress.
 
 ## Tech stack
 
