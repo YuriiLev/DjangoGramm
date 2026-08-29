@@ -1,0 +1,35 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}DjangoGramm{% endblock %}</title>
+</head>
+<body>
+    <nav>
+        <a href="{% url 'home' %}">DjangoGramm</a>
+
+        {% if user.is_authenticated %}
+            <span>{{ user.email }}</span>
+            <form method="post" action="{% url 'account_logout' %}">
+                {% csrf_token %}
+                <button type="submit">Log out</button>
+            </form>
+        {% else %}
+            <a href="{% url 'account_login' %}">Log in</a>
+            <a href="{% url 'account_signup' %}">Sign up</a>
+        {% endif %}
+    </nav>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div>{{ message }}</div>
+        {% endfor %}
+    {% endif %}
+
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+</body>
+</html>

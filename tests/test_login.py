@@ -3,7 +3,6 @@ from allauth.account.models import EmailAddress
 from django.contrib.auth import get_user_model
 from django.urls import reverse
 
-
 User = get_user_model()
 
 
@@ -12,6 +11,7 @@ def user(db):
     user = User.objects.create_user(email="user@example.com", password="SecurePass123!")
     EmailAddress.objects.create(user=user, email=user.email, verified=True, primary=True)
     return user
+
 
 @pytest.mark.django_db
 def test_login_page_loads(client):
