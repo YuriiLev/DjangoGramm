@@ -3,17 +3,22 @@
 {% block title %}Home — DjangoGramm{% endblock %}
 
 {% block content %}
-    <h1>DjangoGramm</h1>
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card shadow-sm">
+            <div class="card-body text-center py-5">
+                <h1 class="card-title">DjangoGramm</h1>
 
-    {% if user.is_authenticated %}
-        <p>Signed in as {{ user.email }}.</p>
-        <p>Your feed will appear here.</p>
-    {% else %}
-        <p>A place to share photos.</p>
-        <p>
-            <a href="{% url 'account_signup' %}">Create an account</a>
-            or
-            <a href="{% url 'account_login' %}">log in</a>.
-        </p>
-    {% endif %}
+                {% if user.is_authenticated %}
+                    <p class="text-muted">Signed in as {{ user.email }}</p>
+                    <p class="text-muted">Your feed will appear here.</p>
+                {% else %}
+                    <p class="lead text-muted">A place to share photos.</p>
+                    <a href="{% url 'account_signup' %}" class="btn btn-primary">Create an account</a>
+                    <a href="{% url 'account_login' %}" class="btn btn-outline-secondary">Log in</a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}
