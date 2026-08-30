@@ -12,3 +12,10 @@ known-first-party = ["config"]
 [tool.pytest.ini_options]
 DJANGO_SETTINGS_MODULE = "config.settings"
 python_files = ["test_*.py", "*_test.py"]
+
+[tool.coverage.run]
+source = ["accounts", "profiles", "config"]
+omit = ["*/migrations/*", "*/tests/*", "config/asgi.py", "config/wsgi.py"]
+
+[tool.coverage.report]
+show_missing = true
