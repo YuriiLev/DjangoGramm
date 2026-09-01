@@ -37,6 +37,7 @@ INSTALLED_APPS = [
     "allauth.account",
     "accounts",
     "profiles",
+    "posts",
 ]
 
 MIDDLEWARE = [
