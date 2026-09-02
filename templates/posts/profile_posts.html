@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+
+{% block title %}{{ profile.full_name }} — posts{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="h4 mb-0">{{ profile.full_name }}</h1>
+        <a href="{% url 'profile-detail' profile.pk %}" class="small text-muted">View profile</a>
+    </div>
+    <a href="{% url 'post-create' profile.id %}" class="btn btn-primary btn-sm">New post</a>
+</div>
+
+{% if posts %}
+    <div class="row g-4">
+        {% for post in posts %}
+            <div class="col-md-6">
+                <div class="card shadow-sm h-100">
+                    {% with post.images.all|first as cover %}
+                        {% if cover %}
+                            <img src="{{ cover.image.url }}" alt=""
+                                 class="card-img-top" style="height: 220px; object-fit: cover;">
+                        {% endif %}
+                    {% endwith %}
+
+                    <div class="card-body">
+                        {% if post.description %}
+                            <p class="card-text">{{ post.description }}</p>
+                        {% endif %}
+
+                        {% for tag in post.tags.all %}
+                            <span class="badge text-bg-secondary">{{ tag.name }}</span>
+                        {% endfor %}
+
+                        <p class="text-muted small mt-2 mb-0">
+                            {{ post.created_at|date:"j M Y, H:i" }}
+                            {% if post.images.count > 1 %}
+                                · {{ post.images.count }} images
+                            {% endif %}
+                        </p>
+                    </div>
+
+                    <div class="card-footer bg-transparent">
+                        <a href="{% url 'post-update' post.id %}" class="btn btn-outline-primary btn-sm">Edit</a>
+                        <a href="{% url 'post-delete' post.id %}" class="btn btn-outline-danger btn-sm">Delete</a>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+{% else %}
+    <div class="card shadow-sm">
+        <div class="card-body text-center py-5">
+            <p class="text-muted">No posts yet.</p>
+            <a href="{% url 'post-create' profile.id %}" class="btn btn-primary">Create your first post</a>
+        </div>
+    </div>
+{% endif %}
+{% endblock %}

@@ -22,12 +22,13 @@
                         {% endif %}
 
                         <div class="flex-grow-1">
-                            <a href="{% url 'profile-detail' profile.pk %}" class="stretched-link text-decoration-none">
+                            <a href="{% url 'profile-detail' profile.pk %}" class="text-decoration-none">
                                 {{ profile.full_name }}
                             </a>
                             {% if profile.bio %}
-                                <p class="text-muted small mb-0 text-truncate">{{ profile.bio }}</p>
+                                <p class="text-muted small mb-1 text-truncate">{{ profile.bio }}</p>
                             {% endif %}
+                            <a href="{% url 'profile-posts' profile.pk %}" class="small">Posts</a>
                         </div>
                     </div>
                 </div>

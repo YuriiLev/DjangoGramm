@@ -27,6 +27,10 @@
                     <p>{{ profile.bio }}</p>
                 {% endif %}
 
+                <p>
+                    <a href="{% url 'profile-posts' profile.pk %}">View posts</a>
+                </p>
+
                 {% if profile.user == user %}
                     <a href="{% url 'profile-update' profile.pk %}" class="btn btn-outline-primary btn-sm">Edit</a>
                     <a href="{% url 'profile-delete' profile.pk %}" class="btn btn-outline-danger btn-sm">Delete</a>

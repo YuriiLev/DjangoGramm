@@ -5,6 +5,7 @@ import pytest
 from django.contrib.auth import get_user_model
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.db import IntegrityError
+from django.urls import reverse
 from django.utils import timezone
 
 from posts.models import Post, PostImage, Tag
@@ -117,3 +118,126 @@ def test_post_can_have_no_tags(profile):
     post = Post.objects.create(profile=profile)
 
     assert post.tags.count() == 0
+
+
+@pytest.mark.django_db
+def test_post_create_requires_login(client, profile):
+    response = client.get(reverse("post-create", args=[profile.id]))
+
+    assert response.status_code == 302
+
+
+@pytest.mark.django_db
+def test_create_post_with_images_and_tags(client, user, profile):
+    client.force_login(user)
+    tag = Tag.objects.create(name="travel")
+
+    client.post(
+        reverse("post-create", args=[profile.id]),
+        {
+            "description": "Hello",
+            "tags": [tag.id],
+            "images": [make_image(), make_image()],
+        },
+    )
+
+    post = Post.objects.get(description="Hello")
+    assert post.profile == profile
+    assert post.images.count() == 2
+    assert post.tags.count() == 1
+
+
+@pytest.mark.django_db
+def test_create_post_ignores_unknown_tag_id(client, user, profile):
+    client.force_login(user)
+
+    client.post(
+        reverse("post-create", args=[profile.id]),
+        {"description": "Hello", "tags": [9999]},
+    )
+
+    post = Post.objects.get(description="Hello")
+    assert post.tags.count() == 0
+
+
+@pytest.mark.django_db
+def test_cannot_create_post_on_someone_elses_profile(client, user, profile):
+    other = User.objects.create_user(email="other@example.com", password="SecurePass123!")
+    client.force_login(other)
+
+    response = client.post(reverse("post-create", args=[profile.id]), {"description": "Hacked"})
+
+    assert response.status_code == 404
+    assert Post.objects.count() == 0
+
+
+@pytest.mark.django_db
+def test_owner_can_update_post(client, user, profile):
+    client.force_login(user)
+    post = Post.objects.create(profile=profile, description="Original")
+
+    client.post(reverse("post-update", args=[post.id]), {"description": "Changed"})
+
+    post.refresh_from_db()
+    assert post.description == "Changed"
+
+
+@pytest.mark.django_db
+def test_update_replaces_tags(client, user, profile):
+    client.force_login(user)
+    old_tag = Tag.objects.create(name="old")
+    new_tag = Tag.objects.create(name="new")
+    post = Post.objects.create(profile=profile, description="Hello")
+    old_tag.posts.add(post)
+
+    client.post(
+        reverse("post-update", args=[post.id]),
+        {"description": "Hello", "tags": [new_tag.id]},
+    )
+
+    assert list(post.tags.all()) == [new_tag]
+
+
+@pytest.mark.django_db
+def test_non_owner_cannot_update_post(client, user, profile):
+    other = User.objects.create_user(email="other@example.com", password="SecurePass123!")
+    post = Post.objects.create(profile=profile, description="Original")
+    client.force_login(other)
+
+    response = client.post(reverse("post-update", args=[post.id]), {"description": "Hacked"})
+
+    assert response.status_code == 404
+    post.refresh_from_db()
+    assert post.description == "Original"
+
+
+@pytest.mark.django_db
+def test_owner_can_delete_post(client, user, profile):
+    client.force_login(user)
+    post = Post.objects.create(profile=profile, description="Hello")
+
+    client.post(reverse("post-delete", args=[post.id]))
+
+    assert Post.objects.count() == 0
+
+
+@pytest.mark.django_db
+def test_non_owner_cannot_delete_post(client, user, profile):
+    other = User.objects.create_user(email="other@example.com", password="SecurePass123!")
+    post = Post.objects.create(profile=profile, description="Hello")
+    client.force_login(other)
+
+    response = client.post(reverse("post-delete", args=[post.id]))
+
+    assert response.status_code == 404
+    assert Post.objects.count() == 1
+
+
+@pytest.mark.django_db
+def test_profile_posts_shows_only_own_profile(client, user, profile):
+    other = User.objects.create_user(email="other@example.com", password="SecurePass123!")
+    client.force_login(other)
+
+    response = client.get(reverse("profile-posts", args=[profile.id]))
+
+    assert response.status_code == 404
