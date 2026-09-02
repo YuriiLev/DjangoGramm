@@ -33,7 +33,7 @@ def test_feed_shows_own_posts(client, user, mine):
     Post.objects.create(profile=mine, description="My post")
     client.force_login(user)
 
-    response = client.get(reverse("feed"))
+    response = client.get(reverse("home"))
 
     assert "My post" in response.content.decode()
 
@@ -44,7 +44,7 @@ def test_feed_shows_followed_posts(client, user, mine, theirs):
     Post.objects.create(profile=theirs, description="Their post")
     client.force_login(user)
 
-    response = client.get(reverse("feed"))
+    response = client.get(reverse("home"))
 
     assert "Their post" in response.content.decode()
 
@@ -54,7 +54,7 @@ def test_feed_hides_unfollowed_posts(client, user, mine, theirs):
     Post.objects.create(profile=theirs, description="Their post")
     client.force_login(user)
 
-    response = client.get(reverse("feed"))
+    response = client.get(reverse("home"))
 
     assert "Their post" not in response.content.decode()
 
@@ -65,7 +65,7 @@ def test_feed_annotates_user_liked(client, user, mine):
     Like.objects.create(profile=mine, post=post)
     client.force_login(user)
 
-    response = client.get(reverse("feed"))
+    response = client.get(reverse("home"))
 
     assert response.context["posts"][0].user_liked is True
 
@@ -77,23 +77,22 @@ def test_feed_annotates_likes_count(client, user, mine, theirs):
     Like.objects.create(profile=theirs, post=post)
     client.force_login(user)
 
-    response = client.get(reverse("feed"))
+    response = client.get(reverse("home"))
 
     assert response.context["posts"][0].likes_count == 2
 
 
 @pytest.mark.django_db
 def test_feed_empty_without_profile(client, user):
-    response = client.get(reverse("feed"))
-
     client.force_login(user)
-    response = client.get(reverse("feed"))
+
+    response = client.get(reverse("home"))
 
     assert list(response.context["posts"]) == []
 
 
 @pytest.mark.django_db
 def test_feed_requires_login(client):
-    response = client.get(reverse("feed"))
+    response = client.get(reverse("home"))
 
     assert response.status_code == 302

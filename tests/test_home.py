@@ -14,24 +14,17 @@ def user(db):
 
 
 @pytest.mark.django_db
-def test_home_page_loads(client):
+def test_root_redirects_anonymous_to_login(client):
     response = client.get(reverse("home"))
 
-    assert response.status_code == 200
+    assert response.status_code == 302
+    assert reverse("account_login") in response.url
 
 
 @pytest.mark.django_db
-def test_home_shows_login_links_when_anonymous(client):
-    response = client.get(reverse("home"))
-
-    assert reverse("account_login") in response.content.decode()
-    assert reverse("account_signup") in response.content.decode()
-
-
-@pytest.mark.django_db
-def test_home_shows_email_when_authenticated(client, user):
+def test_root_shows_feed_when_logged_in(client, user):
     client.force_login(user)
 
     response = client.get(reverse("home"))
 
-    assert "user@example.com" in response.content.decode()
+    assert response.status_code == 200
