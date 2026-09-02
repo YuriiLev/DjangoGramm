@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Post, PostImage, Tag
+from .models import Like, Post, PostImage, Tag
 
 
 class PostImageInline(admin.TabularInline):
@@ -22,3 +22,9 @@ class TagAdmin(admin.ModelAdmin):
     list_display = ["name", "created_at"]
     search_fields = ["name"]
     filter_horizontal = ["posts"]
+
+
+@admin.register(Like)
+class LikeAdmin(admin.ModelAdmin):
+    list_display = ["profile", "post", "created_at"]
+    raw_id_fields = ["profile", "post"]

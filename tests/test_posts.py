@@ -8,7 +8,7 @@ from django.db import IntegrityError
 from django.urls import reverse
 from django.utils import timezone
 
-from posts.models import Post, PostImage, Tag
+from posts.models import Like, Post, PostImage, Tag
 from profiles.models import Profile
 
 User = get_user_model()
@@ -273,3 +273,56 @@ def test_edit_buttons_hidden_from_non_owner(client, user, profile):
     response = client.get(reverse("post-detail", args=[post.id]))
 
     assert reverse("post-update", args=[post.id]) not in response.content.decode()
+
+
+@pytest.mark.django_db
+def test_create_like(profile):
+    post = Post.objects.create(profile=profile, description="Hello")
+
+    like = Like.objects.create(profile=profile, post=post)
+
+    assert like.profile == profile
+    assert post.likes.count() == 1
+
+
+@pytest.mark.django_db
+def test_duplicate_like_is_rejected(profile):
+    post = Post.objects.create(profile=profile, description="Hello")
+    Like.objects.create(profile=profile, post=post)
+
+    with pytest.raises(IntegrityError):
+        Like.objects.create(profile=profile, post=post)
+
+
+@pytest.mark.django_db
+def test_different_profiles_can_like_same_post(user, profile):
+    other = User.objects.create_user(email="other@example.com", password="SecurePass123!")
+    other_profile = Profile.objects.create(user=other, full_name="Other Person")
+    post = Post.objects.create(profile=profile, description="Hello")
+
+    Like.objects.create(profile=profile, post=post)
+    Like.objects.create(profile=other_profile, post=post)
+
+    assert post.likes.count() == 2
+
+
+@pytest.mark.django_db
+def test_deleting_post_deletes_likes(profile):
+    post = Post.objects.create(profile=profile, description="Hello")
+    Like.objects.create(profile=profile, post=post)
+
+    post.delete()
+
+    assert Like.objects.count() == 0
+
+
+@pytest.mark.django_db
+def test_deleting_profile_deletes_likes(user, profile):
+    other = User.objects.create_user(email="other@example.com", password="SecurePass123!")
+    other_profile = Profile.objects.create(user=other, full_name="Other Person")
+    post = Post.objects.create(profile=other_profile, description="Hello")
+    Like.objects.create(profile=profile, post=post)
+
+    profile.delete()
+
+    assert Like.objects.count() == 0
