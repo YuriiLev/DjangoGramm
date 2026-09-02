@@ -4,6 +4,7 @@ from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 
 from profiles.models import Profile
+from profiles.views import get_acting_profile
 
 from .forms import PostForm
 from .models import Like, Post, PostImage, Tag
@@ -52,6 +53,23 @@ def post_create(request, profile_id):
 
 
 @login_required
+def post_detail(request, post_id):
+    post = get_object_or_404(
+        Post.objects.select_related("profile", "profile__user").prefetch_related("images", "tags"),
+        id=post_id,
+    )
+    return render(
+        request,
+        "posts/post_detail.html",
+        {
+            "post": post,
+            "acting": get_acting_profile(request),
+            "my_profiles": request.user.profiles.all(),
+        },
+    )
+
+
+@login_required
 def post_update(request, post_id):
     post = get_object_or_404(Post, id=post_id, profile__user=request.user)
 
@@ -95,15 +113,6 @@ def post_delete(request, post_id):
         return redirect("profile-posts", profile_id=profile_id)
 
     return render(request, "posts/post_confirm_delete.html", {"post": post})
-
-
-@login_required
-def post_detail(request, post_id):
-    post = get_object_or_404(
-        Post.objects.select_related("profile", "profile__user").prefetch_related("images", "tags"),
-        id=post_id,
-    )
-    return render(request, "posts/post_detail.html", {"post": post})
 
 
 @login_required

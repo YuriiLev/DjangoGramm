@@ -6,6 +6,16 @@ from .forms import ProfileForm
 from .models import Profile
 
 
+def get_acting_profile(request):
+    profiles = request.user.profiles.all()
+    acting_id = request.GET.get("as")
+    if acting_id:
+        chosen = profiles.filter(id=acting_id).first()
+        if chosen:
+            return chosen
+    return profiles.first()
+
+
 class ProfileListView(LoginRequiredMixin, ListView):
     model = Profile
     template_name = "profiles/profile_list.html"
@@ -22,6 +32,12 @@ class ProfileDetailView(LoginRequiredMixin, DetailView):
 
     def get_queryset(self):
         return Profile.objects.select_related("user")
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["my_profiles"] = self.request.user.profiles.all()
+        context["acting"] = get_acting_profile(self.request)
+        return context
 
 
 class ProfileCreateView(LoginRequiredMixin, CreateView):
