@@ -326,3 +326,70 @@ def test_deleting_profile_deletes_likes(user, profile):
     profile.delete()
 
     assert Like.objects.count() == 0
+
+
+@pytest.mark.django_db
+def test_toggle_like_creates_like(client, user, profile):
+    client.force_login(user)
+    post = Post.objects.create(profile=profile, description="Hello")
+
+    client.get(reverse("toggle-like", args=[post.id, profile.id]))
+
+    assert post.likes.count() == 1
+
+
+@pytest.mark.django_db
+def test_toggle_like_twice_removes_like(client, user, profile):
+    client.force_login(user)
+    post = Post.objects.create(profile=profile, description="Hello")
+
+    client.get(reverse("toggle-like", args=[post.id, profile.id]))
+    client.get(reverse("toggle-like", args=[post.id, profile.id]))
+
+    assert post.likes.count() == 0
+
+
+@pytest.mark.django_db
+def test_cannot_like_as_someone_elses_profile(client, user, profile):
+    other = User.objects.create_user(email="other@example.com", password="SecurePass123!")
+    post = Post.objects.create(profile=profile, description="Hello")
+    client.force_login(other)
+
+    response = client.get(reverse("toggle-like", args=[post.id, profile.id]))
+
+    assert response.status_code == 404
+    assert post.likes.count() == 0
+
+
+@pytest.mark.django_db
+def test_ajax_request_returns_json(client, user, profile):
+    client.force_login(user)
+    post = Post.objects.create(profile=profile, description="Hello")
+
+    response = client.get(
+        reverse("toggle-like", args=[post.id, profile.id]),
+        headers={"x-requested-with": "XMLHttpRequest"},
+    )
+
+    assert response.status_code == 200
+    assert response.json() == {"liked": True, "count": 1}
+
+
+@pytest.mark.django_db
+def test_normal_request_redirects(client, user, profile):
+    client.force_login(user)
+    post = Post.objects.create(profile=profile, description="Hello")
+
+    response = client.get(reverse("toggle-like", args=[post.id, profile.id]))
+
+    assert response.status_code == 302
+
+
+@pytest.mark.django_db
+def test_toggle_like_requires_login(client, profile):
+    post = Post.objects.create(profile=profile, description="Hello")
+
+    response = client.get(reverse("toggle-like", args=[post.id, profile.id]))
+
+    assert response.status_code == 302
+    assert post.likes.count() == 0

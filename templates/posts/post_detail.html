@@ -40,6 +40,16 @@
                     </div>
                 {% endif %}
 
+                {% if acting %}
+                    <div class="mt-3">
+                        <a href="{% url 'toggle-like' post.id acting.id %}"
+                           class="btn btn-sm {% if post.user_liked %}btn-danger{% else %}btn-outline-danger{% endif %}"
+                           data-like-url="{% url 'toggle-like' post.id acting.id %}">
+                            ♥ <span class="like-count">{{ post.likes.count }}</span>
+                        </a>
+                    </div>
+                {% endif %}
+
                 {% if post.profile.user == user %}
                     <hr>
                     <a href="{% url 'post-update' post.id %}" class="btn btn-outline-primary btn-sm">Edit</a>

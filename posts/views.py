@@ -1,11 +1,12 @@
 from django.contrib.auth.decorators import login_required
 from django.db.models import Count
+from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 
 from profiles.models import Profile
 
 from .forms import PostForm
-from .models import Post, PostImage, Tag
+from .models import Like, Post, PostImage, Tag
 
 
 @login_required
@@ -120,3 +121,23 @@ def tag_detail(request, tag_id):
         .order_by("-created_at")
     )
     return render(request, "posts/tag_detail.html", {"tag": tag, "posts": posts})
+
+
+@login_required
+def toggle_like(request, post_id, profile_id):
+    post = get_object_or_404(Post, id=post_id)
+    profile = get_object_or_404(Profile, id=profile_id, user=request.user)
+
+    like = Like.objects.filter(profile=profile, post=post).first()
+
+    if like:
+        like.delete()
+        liked = False
+    else:
+        Like.objects.create(profile=profile, post=post)
+        liked = True
+
+    if request.headers.get("X-Requested-With") == "XMLHttpRequest":
+        return JsonResponse({"liked": liked, "count": post.likes.count()})
+
+    return redirect(request.META.get("HTTP_REFERER", "/"))
