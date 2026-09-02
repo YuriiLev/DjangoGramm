@@ -34,7 +34,8 @@
                 {% if post.tags.all %}
                     <div class="mt-2">
                         {% for tag in post.tags.all %}
-                            <span class="badge text-bg-secondary">{{ tag.name }}</span>
+                            <a href="{% url 'tag-detail' tag.id %}"
+                               class="badge text-bg-secondary text-decoration-none">{{ tag.name }}</a>
                         {% endfor %}
                     </div>
                 {% endif %}

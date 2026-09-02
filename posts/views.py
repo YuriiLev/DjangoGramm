@@ -1,4 +1,5 @@
 from django.contrib.auth.decorators import login_required
+from django.db.models import Count
 from django.shortcuts import get_object_or_404, redirect, render
 
 from profiles.models import Profile
@@ -102,3 +103,20 @@ def post_detail(request, post_id):
         id=post_id,
     )
     return render(request, "posts/post_detail.html", {"post": post})
+
+
+@login_required
+def tag_list(request):
+    tags = Tag.objects.annotate(post_count=Count("posts")).order_by("name")
+    return render(request, "posts/tag_list.html", {"tags": tags})
+
+
+@login_required
+def tag_detail(request, tag_id):
+    tag = get_object_or_404(Tag, id=tag_id)
+    posts = (
+        tag.posts.select_related("profile")
+        .prefetch_related("images", "tags")
+        .order_by("-created_at")
+    )
+    return render(request, "posts/tag_detail.html", {"tag": tag, "posts": posts})

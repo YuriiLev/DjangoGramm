@@ -1,4 +1,5 @@
 import base64
+from datetime import timedelta
 
 import pytest
 from django.contrib.auth import get_user_model
@@ -6,6 +7,7 @@ from django.core.exceptions import ValidationError
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.db import IntegrityError
 from django.urls import reverse
+from django.utils import timezone
 
 from profiles.forms import ProfileForm
 from profiles.models import Follow, Profile
@@ -49,8 +51,10 @@ def test_user_can_own_multiple_profiles(user):
 
 @pytest.mark.django_db
 def test_profiles_ordered_newest_first(user):
-    Profile.objects.create(user=user, full_name="Older")
+    older = Profile.objects.create(user=user, full_name="Older")
     newer = Profile.objects.create(user=user, full_name="Newer")
+
+    Profile.objects.filter(pk=older.pk).update(created_at=timezone.now() - timedelta(days=1))
 
     assert Profile.objects.first() == newer
 
