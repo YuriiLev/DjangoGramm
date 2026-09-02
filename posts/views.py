@@ -1,9 +1,9 @@
 from django.contrib.auth.decorators import login_required
-from django.db.models import Count
+from django.db.models import Count, Exists, OuterRef
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 
-from profiles.models import Profile
+from profiles.models import Follow, Profile
 from profiles.views import get_acting_profile
 
 from .forms import PostForm
@@ -150,3 +150,35 @@ def toggle_like(request, post_id, profile_id):
         return JsonResponse({"liked": liked, "count": post.likes.count()})
 
     return redirect(request.META.get("HTTP_REFERER", "/"))
+
+
+@login_required
+def feed(request):
+    acting = get_acting_profile(request)
+
+    if acting:
+        followed_ids = Follow.objects.filter(follower=acting).values_list("followed_id", flat=True)
+        visible_ids = list(followed_ids) + [acting.id]
+        liked = Like.objects.filter(post=OuterRef("pk"), profile=acting)
+        posts = (
+            Post.objects.filter(profile_id__in=visible_ids)
+            .annotate(
+                user_liked=Exists(liked),
+                likes_count=Count("likes"),
+            )
+            .select_related("profile", "profile__user")
+            .prefetch_related("tags", "images")
+            .order_by("-created_at")
+        )
+    else:
+        posts = Post.objects.none()
+
+    return render(
+        request,
+        "posts/feed.html",
+        {
+            "posts": posts,
+            "acting": acting,
+            "my_profiles": request.user.profiles.all(),
+        },
+    )
