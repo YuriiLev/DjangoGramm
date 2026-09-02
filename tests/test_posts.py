@@ -241,3 +241,35 @@ def test_profile_posts_shows_only_own_profile(client, user, profile):
     response = client.get(reverse("profile-posts", args=[profile.id]))
 
     assert response.status_code == 404
+
+
+@pytest.mark.django_db
+def test_post_detail_requires_login(client, profile):
+    post = Post.objects.create(profile=profile, description="Hello")
+
+    response = client.get(reverse("post-detail", args=[post.id]))
+
+    assert response.status_code == 302
+
+
+@pytest.mark.django_db
+def test_any_user_can_view_post_detail(client, user, profile):
+    other = User.objects.create_user(email="other@example.com", password="SecurePass123!")
+    post = Post.objects.create(profile=profile, description="Hello")
+    client.force_login(other)
+
+    response = client.get(reverse("post-detail", args=[post.id]))
+
+    assert response.status_code == 200
+    assert "Hello" in response.content.decode()
+
+
+@pytest.mark.django_db
+def test_edit_buttons_hidden_from_non_owner(client, user, profile):
+    other = User.objects.create_user(email="other@example.com", password="SecurePass123!")
+    post = Post.objects.create(profile=profile, description="Hello")
+    client.force_login(other)
+
+    response = client.get(reverse("post-detail", args=[post.id]))
+
+    assert reverse("post-update", args=[post.id]) not in response.content.decode()

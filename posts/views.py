@@ -93,3 +93,12 @@ def post_delete(request, post_id):
         return redirect("profile-posts", profile_id=profile_id)
 
     return render(request, "posts/post_confirm_delete.html", {"post": post})
+
+
+@login_required
+def post_detail(request, post_id):
+    post = get_object_or_404(
+        Post.objects.select_related("profile", "profile__user").prefetch_related("images", "tags"),
+        id=post_id,
+    )
+    return render(request, "posts/post_detail.html", {"post": post})
