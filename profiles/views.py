@@ -1,5 +1,6 @@
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.db.models import Exists, OuterRef
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse_lazy
@@ -83,6 +84,26 @@ class ProfileDeleteView(LoginRequiredMixin, DeleteView):
 
     def get_queryset(self):
         return Profile.objects.filter(user=self.request.user)
+
+
+class DiscoverListView(LoginRequiredMixin, ListView):
+    model = Profile
+    template_name = "profiles/discover.html"
+    context_object_name = "profiles"
+
+    def get_queryset(self):
+        acting = get_acting_profile(self.request)
+        qs = Profile.objects.exclude(user=self.request.user).select_related("user")
+        if acting:
+            followed = Follow.objects.filter(follower=acting, followed=OuterRef("pk"))
+            qs = qs.annotate(is_followed=Exists(followed))
+        return qs
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["my_profiles"] = self.request.user.profiles.all()
+        context["acting"] = get_acting_profile(self.request)
+        return context
 
 
 @login_required

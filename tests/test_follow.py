@@ -84,3 +84,52 @@ def test_toggle_follow_requires_login(client, mine, theirs):
 
     assert response.status_code == 302
     assert Follow.objects.count() == 0
+
+
+@pytest.mark.django_db
+def test_discover_excludes_own_profiles(client, user, mine, theirs):
+    client.force_login(user)
+
+    response = client.get(reverse("discover"))
+    content = response.content.decode()
+
+    assert "Theirs" in content
+    assert "Mine" not in content
+
+
+@pytest.mark.django_db
+def test_discover_annotates_is_followed(client, user, mine, theirs):
+    Follow.objects.create(follower=mine, followed=theirs)
+    client.force_login(user)
+
+    response = client.get(reverse("discover"))
+
+    profile = response.context["profiles"][0]
+    assert profile.is_followed is True
+
+
+@pytest.mark.django_db
+def test_discover_is_followed_false_when_not_following(client, user, mine, theirs):
+    client.force_login(user)
+
+    response = client.get(reverse("discover"))
+
+    profile = response.context["profiles"][0]
+    assert profile.is_followed is False
+
+
+@pytest.mark.django_db
+def test_discover_works_without_any_profile(client, other_user, theirs):
+    another = User.objects.create_user(email="third@example.com", password="SecurePass123!")
+    client.force_login(another)
+
+    response = client.get(reverse("discover"))
+
+    assert response.status_code == 200
+
+
+@pytest.mark.django_db
+def test_discover_requires_login(client):
+    response = client.get(reverse("discover"))
+
+    assert response.status_code == 302
