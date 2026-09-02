@@ -36,9 +36,9 @@
                 {% if acting and profile.user != user %}
                     <p>
                         <a href="{% url 'toggle-follow' profile.pk acting.id %}"
-                           class="btn btn-sm {% if is_followed %}btn-secondary{% else %}btn-primary{% endif %}"
+                           class="btn btn-sm {% if profile.is_followed %}btn-secondary{% else %}btn-primary{% endif %}"
                            data-follow-url="{% url 'toggle-follow' profile.pk acting.id %}">
-                            <span class="follow-label">{% if is_followed %}Unfollow{% else %}Follow{% endif %}</span>
+                            <span class="follow-label">{% if profile.is_followed %}Unfollow{% else %}Follow{% endif %}</span>
                             <span class="follow-count">{{ profile.followers.count }}</span>
                         </a>
                     </p>
