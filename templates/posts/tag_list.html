@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+{% block title %}Tags — DjangoGramm{% endblock %}
+
+{% block content %}
+<h1 class="h4 mb-4">Tags</h1>
+
+{% if tags %}
+    <div class="d-flex flex-wrap gap-2">
+        {% for tag in tags %}
+            <a href="{% url 'tag-detail' tag.id %}" class="btn btn-outline-secondary btn-sm">
+                {{ tag.name }}
+                <span class="badge text-bg-secondary ms-1">{{ tag.post_count }}</span>
+            </a>
+        {% endfor %}
+    </div>
+{% else %}
+    <div class="card shadow-sm">
+        <div class="card-body text-center py-5">
+            <p class="text-muted mb-0">No tags yet.</p>
+        </div>
+    </div>
+{% endif %}
+{% endblock %}

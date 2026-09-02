@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% block title %}#{{ tag.name }} — DjangoGramm{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h4 mb-0">#{{ tag.name }}</h1>
+    <a href="{% url 'tag-list' %}" class="small text-muted">All tags</a>
+</div>
+
+{% if posts %}
+    <div class="row g-4">
+        {% for post in posts %}
+            <div class="col-md-4">
+                <div class="card shadow-sm h-100">
+                    <a href="{% url 'post-detail' post.id %}">
+                        {% with post.images.all|first as cover %}
+                            {% if cover %}
+                                <img src="{{ cover.image.url }}" alt=""
+                                     class="card-img-top" style="height: 180px; object-fit: cover;">
+                            {% endif %}
+                        {% endwith %}
+                    </a>
+
+                    <div class="card-body">
+                        <a href="{% url 'profile-detail' post.profile.pk %}"
+                           class="small text-decoration-none">{{ post.profile.full_name }}</a>
+
+                        {% if post.description %}
+                            <p class="card-text small mt-1 mb-0">{{ post.description|truncatechars:80 }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+{% else %}
+    <div class="card shadow-sm">
+        <div class="card-body text-center py-5">
+            <p class="text-muted mb-0">No posts with this tag yet.</p>
+        </div>
+    </div>
+{% endif %}
+{% endblock %}

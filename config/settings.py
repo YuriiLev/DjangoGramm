@@ -29,11 +29,15 @@ INSTALLED_APPS = [
     "django.contrib.contenttypes",
     "django.contrib.sessions",
     "django.contrib.messages",
+    "cloudinary_storage",
     "django.contrib.staticfiles",
+    "cloudinary",
     "django.contrib.sites",
     "allauth",
     "allauth.account",
     "accounts",
+    "profiles",
+    "posts",
 ]
 
 MIDDLEWARE = [
@@ -148,6 +152,30 @@ USE_TZ = True
 
 STATIC_URL = "static/"
 
+# Media files
+
+CLOUDINARY_STORAGE = {
+    "CLOUD_NAME": os.environ.get("CLOUDINARY_CLOUD_NAME", ""),
+    "API_KEY": os.environ.get("CLOUDINARY_API_KEY", ""),
+    "API_SECRET": os.environ.get("CLOUDINARY_API_SECRET", ""),
+}
+
+STORAGES = {
+    "default": {
+        "BACKEND": "cloudinary_storage.storage.MediaCloudinaryStorage",
+    },
+    "staticfiles": {
+        "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
+    },
+}
+
+MEDIA_URL = "media/"
+MEDIA_ROOT = BASE_DIR / "media"
+
+
+# Default primary key field type
+
+DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # Default primary key field type
 
