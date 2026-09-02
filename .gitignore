@@ -234,3 +234,7 @@ __marimo__/
 .DS_Store
 Thumbs.db
 desktop.ini
+
+# Node
+node_modules/
+static/dist/
