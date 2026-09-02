@@ -33,6 +33,17 @@
                     <a href="{% url 'profile-posts' profile.pk %}">View posts</a>
                 </p>
 
+                {% if acting and profile.user != user %}
+                    <p>
+                        <a href="{% url 'toggle-follow' profile.pk acting.id %}"
+                           class="btn btn-sm {% if is_followed %}btn-secondary{% else %}btn-primary{% endif %}"
+                           data-follow-url="{% url 'toggle-follow' profile.pk acting.id %}">
+                            <span class="follow-label">{% if is_followed %}Unfollow{% else %}Follow{% endif %}</span>
+                            <span class="follow-count">{{ profile.followers.count }}</span>
+                        </a>
+                    </p>
+                {% endif %}
+
                 {% if profile.user == user %}
                     <a href="{% url 'profile-update' profile.pk %}" class="btn btn-outline-primary btn-sm">Edit</a>
                     <a href="{% url 'profile-delete' profile.pk %}" class="btn btn-outline-danger btn-sm">Delete</a>

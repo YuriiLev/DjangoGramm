@@ -1,9 +1,12 @@
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.http import JsonResponse
+from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse_lazy
 from django.views.generic import CreateView, DeleteView, DetailView, ListView, UpdateView
 
 from .forms import ProfileForm
-from .models import Profile
+from .models import Follow, Profile
 
 
 def get_acting_profile(request):
@@ -80,3 +83,25 @@ class ProfileDeleteView(LoginRequiredMixin, DeleteView):
 
     def get_queryset(self):
         return Profile.objects.filter(user=self.request.user)
+
+
+@login_required
+def toggle_follow(request, profile_id, follower_id):
+    target = get_object_or_404(Profile, id=profile_id)
+    follower = get_object_or_404(Profile, id=follower_id, user=request.user)
+
+    if target == follower:
+        return redirect(request.META.get("HTTP_REFERER", "/"))
+
+    follow = Follow.objects.filter(follower=follower, followed=target).first()
+    if follow:
+        follow.delete()
+        following = False
+    else:
+        Follow.objects.create(follower=follower, followed=target)
+        following = True
+
+    if request.headers.get("X-Requested-With") == "XMLHttpRequest":
+        return JsonResponse({"following": following, "count": target.followers.count()})
+
+    return redirect(request.META.get("HTTP_REFERER", "/"))
