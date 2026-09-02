@@ -1,11 +1,13 @@
 from django.urls import path
 
 from .views import (
+    DiscoverListView,
     ProfileCreateView,
     ProfileDeleteView,
     ProfileDetailView,
     ProfileListView,
     ProfileUpdateView,
+    toggle_follow,
 )
 
 urlpatterns = [
@@ -14,4 +16,6 @@ urlpatterns = [
     path("<int:pk>/", ProfileDetailView.as_view(), name="profile-detail"),
     path("<int:pk>/edit/", ProfileUpdateView.as_view(), name="profile-update"),
     path("<int:pk>/delete/", ProfileDeleteView.as_view(), name="profile-delete"),
+    path("discover/", DiscoverListView.as_view(), name="discover"),
+    path("<int:profile_id>/follow/<int:follower_id>/", toggle_follow, name="toggle-follow"),
 ]

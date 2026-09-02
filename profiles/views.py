@@ -1,9 +1,23 @@
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.db.models import Exists, OuterRef
+from django.http import JsonResponse
+from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse_lazy
 from django.views.generic import CreateView, DeleteView, DetailView, ListView, UpdateView
 
 from .forms import ProfileForm
-from .models import Profile
+from .models import Follow, Profile
+
+
+def get_acting_profile(request):
+    profiles = request.user.profiles.all()
+    acting_id = request.GET.get("as")
+    if acting_id:
+        chosen = profiles.filter(id=acting_id).first()
+        if chosen:
+            return chosen
+    return profiles.first()
 
 
 class ProfileListView(LoginRequiredMixin, ListView):
@@ -22,6 +36,12 @@ class ProfileDetailView(LoginRequiredMixin, DetailView):
 
     def get_queryset(self):
         return Profile.objects.select_related("user")
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["my_profiles"] = self.request.user.profiles.all()
+        context["acting"] = get_acting_profile(self.request)
+        return context
 
 
 class ProfileCreateView(LoginRequiredMixin, CreateView):
@@ -64,3 +84,45 @@ class ProfileDeleteView(LoginRequiredMixin, DeleteView):
 
     def get_queryset(self):
         return Profile.objects.filter(user=self.request.user)
+
+
+class DiscoverListView(LoginRequiredMixin, ListView):
+    model = Profile
+    template_name = "profiles/discover.html"
+    context_object_name = "profiles"
+
+    def get_queryset(self):
+        acting = get_acting_profile(self.request)
+        qs = Profile.objects.exclude(user=self.request.user).select_related("user")
+        if acting:
+            followed = Follow.objects.filter(follower=acting, followed=OuterRef("pk"))
+            qs = qs.annotate(is_followed=Exists(followed))
+        return qs
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["my_profiles"] = self.request.user.profiles.all()
+        context["acting"] = get_acting_profile(self.request)
+        return context
+
+
+@login_required
+def toggle_follow(request, profile_id, follower_id):
+    target = get_object_or_404(Profile, id=profile_id)
+    follower = get_object_or_404(Profile, id=follower_id, user=request.user)
+
+    if target == follower:
+        return redirect(request.META.get("HTTP_REFERER", "/"))
+
+    follow = Follow.objects.filter(follower=follower, followed=target).first()
+    if follow:
+        follow.delete()
+        following = False
+    else:
+        Follow.objects.create(follower=follower, followed=target)
+        following = True
+
+    if request.headers.get("X-Requested-With") == "XMLHttpRequest":
+        return JsonResponse({"following": following, "count": target.followers.count()})
+
+    return redirect(request.META.get("HTTP_REFERER", "/"))

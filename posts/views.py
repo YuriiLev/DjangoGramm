@@ -1,11 +1,13 @@
 from django.contrib.auth.decorators import login_required
-from django.db.models import Count
+from django.db.models import Count, Exists, OuterRef
+from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 
-from profiles.models import Profile
+from profiles.models import Follow, Profile
+from profiles.views import get_acting_profile
 
 from .forms import PostForm
-from .models import Post, PostImage, Tag
+from .models import Like, Post, PostImage, Tag
 
 
 @login_required
@@ -46,6 +48,23 @@ def post_create(request, profile_id):
             "profile": profile,
             "title": "Create Post",
             "tags": Tag.objects.all(),
+        },
+    )
+
+
+@login_required
+def post_detail(request, post_id):
+    post = get_object_or_404(
+        Post.objects.select_related("profile", "profile__user").prefetch_related("images", "tags"),
+        id=post_id,
+    )
+    return render(
+        request,
+        "posts/post_detail.html",
+        {
+            "post": post,
+            "acting": get_acting_profile(request),
+            "my_profiles": request.user.profiles.all(),
         },
     )
 
@@ -97,15 +116,6 @@ def post_delete(request, post_id):
 
 
 @login_required
-def post_detail(request, post_id):
-    post = get_object_or_404(
-        Post.objects.select_related("profile", "profile__user").prefetch_related("images", "tags"),
-        id=post_id,
-    )
-    return render(request, "posts/post_detail.html", {"post": post})
-
-
-@login_required
 def tag_list(request):
     tags = Tag.objects.annotate(post_count=Count("posts")).order_by("name")
     return render(request, "posts/tag_list.html", {"tags": tags})
@@ -120,3 +130,55 @@ def tag_detail(request, tag_id):
         .order_by("-created_at")
     )
     return render(request, "posts/tag_detail.html", {"tag": tag, "posts": posts})
+
+
+@login_required
+def toggle_like(request, post_id, profile_id):
+    post = get_object_or_404(Post, id=post_id)
+    profile = get_object_or_404(Profile, id=profile_id, user=request.user)
+
+    like = Like.objects.filter(profile=profile, post=post).first()
+
+    if like:
+        like.delete()
+        liked = False
+    else:
+        Like.objects.create(profile=profile, post=post)
+        liked = True
+
+    if request.headers.get("X-Requested-With") == "XMLHttpRequest":
+        return JsonResponse({"liked": liked, "count": post.likes.count()})
+
+    return redirect(request.META.get("HTTP_REFERER", "/"))
+
+
+@login_required
+def feed(request):
+    acting = get_acting_profile(request)
+
+    if acting:
+        followed_ids = Follow.objects.filter(follower=acting).values_list("followed_id", flat=True)
+        visible_ids = list(followed_ids) + [acting.id]
+        liked = Like.objects.filter(post=OuterRef("pk"), profile=acting)
+        posts = (
+            Post.objects.filter(profile_id__in=visible_ids)
+            .annotate(
+                user_liked=Exists(liked),
+                likes_count=Count("likes"),
+            )
+            .select_related("profile", "profile__user")
+            .prefetch_related("tags", "images")
+            .order_by("-created_at")
+        )
+    else:
+        posts = Post.objects.none()
+
+    return render(
+        request,
+        "posts/feed.html",
+        {
+            "posts": posts,
+            "acting": acting,
+            "my_profiles": request.user.profiles.all(),
+        },
+    )

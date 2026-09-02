@@ -1,0 +1,11 @@
+{% if my_profiles.count > 1 %}
+    <div class="mb-3 small text-muted">
+        Acting as:
+        {% for p in my_profiles %}
+            <a href="?as={{ p.id }}"
+               class="{% if p == acting %}fw-bold text-decoration-none{% else %}text-muted{% endif %}">
+                {{ p.full_name }}
+            </a>{% if not forloop.last %} ·{% endif %}
+        {% endfor %}
+    </div>
+{% endif %}
