@@ -35,7 +35,12 @@ class ProfileDetailView(LoginRequiredMixin, DetailView):
     context_object_name = "profile"
 
     def get_queryset(self):
-        return Profile.objects.select_related("user")
+        qs = Profile.objects.select_related("user")
+        acting = get_acting_profile(self.request)
+        if acting:
+            followed = Follow.objects.filter(follower=acting, followed=OuterRef("pk"))
+            qs = qs.annotate(is_followed=Exists(followed))
+        return qs
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
