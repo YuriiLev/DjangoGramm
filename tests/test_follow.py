@@ -133,3 +133,13 @@ def test_discover_requires_login(client):
     response = client.get(reverse("discover"))
 
     assert response.status_code == 302
+
+
+@pytest.mark.django_db
+def test_profile_detail_shows_unfollow_when_following(client, user, mine, theirs):
+    Follow.objects.create(follower=mine, followed=theirs)
+    client.force_login(user)
+
+    response = client.get(reverse("profile-detail", args=[theirs.id]))
+
+    assert response.context["profile"].is_followed is True

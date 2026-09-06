@@ -7,14 +7,14 @@ exclude = ["migrations", ".venv"]
 select = ["E", "F", "I", "UP", "B", "DJ"]
 
 [tool.ruff.lint.isort]
-known-first-party = ["config"]
+known-first-party = ["accounts", "config", "posts", "profiles"]
 
 [tool.pytest.ini_options]
 DJANGO_SETTINGS_MODULE = "config.settings"
 python_files = ["test_*.py", "*_test.py"]
 
 [tool.coverage.run]
-source = ["accounts", "profiles", "config"]
+source = ["accounts", "posts", "profiles", "config"]
 omit = ["*/migrations/*", "*/tests/*", "config/asgi.py", "config/wsgi.py"]
 
 [tool.coverage.report]

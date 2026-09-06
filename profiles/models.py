@@ -25,8 +25,17 @@ class Follow(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        unique_together = ("follower", "followed")
         ordering = ["-created_at"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["follower", "followed"],
+                name="unique_follow",
+            ),
+            models.CheckConstraint(
+                condition=~models.Q(follower=models.F("followed")),
+                name="no_self_follow",
+            ),
+        ]
 
     def __str__(self):
         return f"{self.follower.full_name} follows {self.followed.full_name}"

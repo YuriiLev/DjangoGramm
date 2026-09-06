@@ -8,7 +8,9 @@
         <h1 class="h4 mb-0">{{ profile.full_name }}</h1>
         <a href="{% url 'profile-detail' profile.pk %}" class="small text-muted">View profile</a>
     </div>
-    <a href="{% url 'post-create' profile.id %}" class="btn btn-primary btn-sm">New post</a>
+    {% if is_owner %}
+        <a href="{% url 'post-create' profile.id %}" class="btn btn-primary btn-sm">New post</a>
+    {% endif %}
 </div>
 
 {% if posts %}
@@ -47,10 +49,12 @@
                         </p>
                     </div>
 
-                    <div class="card-footer bg-transparent">
-                        <a href="{% url 'post-update' post.id %}" class="btn btn-outline-primary btn-sm">Edit</a>
-                        <a href="{% url 'post-delete' post.id %}" class="btn btn-outline-danger btn-sm">Delete</a>
-                    </div>
+                    {% if is_owner %}
+                        <div class="card-footer bg-transparent">
+                            <a href="{% url 'post-update' post.id %}" class="btn btn-outline-primary btn-sm">Edit</a>
+                            <a href="{% url 'post-delete' post.id %}" class="btn btn-outline-danger btn-sm">Delete</a>
+                        </div>
+                    {% endif %}
                 </div>
             </div>
         {% endfor %}
@@ -59,7 +63,9 @@
     <div class="card shadow-sm">
         <div class="card-body text-center py-5">
             <p class="text-muted">No posts yet.</p>
-            <a href="{% url 'post-create' profile.id %}" class="btn btn-primary">Create your first post</a>
+            {% if is_owner %}
+                <a href="{% url 'post-create' profile.id %}" class="btn btn-primary">Create your first post</a>
+            {% endif %}
         </div>
     </div>
 {% endif %}
