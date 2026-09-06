@@ -33,7 +33,7 @@
                             <label class="form-label">Current images</label>
                             <div class="d-flex flex-wrap gap-2">
                                 {% for image in post.images.all %}
-                                    <img src="{{ image.image.url }}" alt=""
+                                    <img src="{{ image.cover_url }}" alt=""
                                          class="rounded" style="width: 80px; height: 80px; object-fit: cover;">
                                 {% endfor %}
                             </div>

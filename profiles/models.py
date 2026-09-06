@@ -2,6 +2,8 @@ from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from django.db import models
 
+from config.images import AVATAR_THUMB, transform
+
 User = get_user_model()
 
 
@@ -17,6 +19,10 @@ class Profile(models.Model):
 
     def __str__(self):
         return f"{self.full_name} (@{self.user.email})"
+
+    @property
+    def avatar_thumb_url(self):
+        return transform(self.avatar.url, AVATAR_THUMB) if self.avatar else ""
 
 
 class Follow(models.Model):
