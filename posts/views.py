@@ -12,9 +12,17 @@ from .models import Like, Post, PostImage, Tag
 
 @login_required
 def profile_posts(request, profile_id):
-    profile = get_object_or_404(Profile, id=profile_id, user=request.user)
+    profile = get_object_or_404(Profile.objects.select_related("user"), id=profile_id)
     posts = profile.posts.prefetch_related("images", "tags")
-    return render(request, "posts/profile_posts.html", {"profile": profile, "posts": posts})
+    return render(
+        request,
+        "posts/profile_posts.html",
+        {
+            "profile": profile,
+            "posts": posts,
+            "is_owner": profile.user_id == request.user.id,
+        },
+    )
 
 
 @login_required

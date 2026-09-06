@@ -234,13 +234,26 @@ def test_non_owner_cannot_delete_post(client, user, profile):
 
 
 @pytest.mark.django_db
-def test_profile_posts_shows_only_own_profile(client, user, profile):
+def test_any_user_can_view_profile_posts(client, user, profile):
     other = User.objects.create_user(email="other@example.com", password="SecurePass123!")
+    Post.objects.create(profile=profile, description="Hello")
     client.force_login(other)
 
     response = client.get(reverse("profile-posts", args=[profile.id]))
 
-    assert response.status_code == 404
+    assert response.status_code == 200
+    assert "Hello" in response.content.decode()
+
+
+@pytest.mark.django_db
+def test_edit_controls_hidden_from_non_owner_on_profile_posts(client, user, profile):
+    other = User.objects.create_user(email="other@example.com", password="SecurePass123!")
+    post = Post.objects.create(profile=profile, description="Hello")
+    client.force_login(other)
+
+    response = client.get(reverse("profile-posts", args=[profile.id]))
+
+    assert reverse("post-update", args=[post.id]) not in response.content.decode()
 
 
 @pytest.mark.django_db
