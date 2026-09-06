@@ -8,3 +8,5 @@ pytest==8.4.2
 pytest-cov==7.0.0
 pytest-django==4.11.1
 ruff==0.14.14
+django-debug-toolbar==7.1.*
+django-extensions==4.1.*

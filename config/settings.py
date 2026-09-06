@@ -181,3 +181,8 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 # Default primary key field type
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+if DEBUG:
+    INSTALLED_APPS += ["debug_toolbar", "django_extensions"]
+    MIDDLEWARE.insert(0, "debug_toolbar.middleware.DebugToolbarMiddleware")
+    INTERNAL_IPS = ["127.0.0.1"]
