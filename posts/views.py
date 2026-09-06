@@ -1,4 +1,5 @@
 from django.contrib.auth.decorators import login_required
+from django.core.paginator import Paginator
 from django.db.models import Count, Exists, OuterRef
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
@@ -10,16 +11,22 @@ from .forms import PostForm
 from .models import Like, Post, PostImage, Tag
 
 
+def paginate(request, queryset, per_page=12):
+    return Paginator(queryset, per_page).get_page(request.GET.get("page"))
+
+
 @login_required
 def profile_posts(request, profile_id):
     profile = get_object_or_404(Profile.objects.select_related("user"), id=profile_id)
     posts = profile.posts.prefetch_related("images", "tags")
+    page_obj = paginate(request, posts)
     return render(
         request,
         "posts/profile_posts.html",
         {
             "profile": profile,
-            "posts": posts,
+            "posts": page_obj,
+            "page_obj": page_obj,
             "is_owner": profile.user_id == request.user.id,
         },
     )
@@ -137,7 +144,12 @@ def tag_detail(request, tag_id):
         .prefetch_related("images", "tags")
         .order_by("-created_at")
     )
-    return render(request, "posts/tag_detail.html", {"tag": tag, "posts": posts})
+    page_obj = paginate(request, posts)
+    return render(
+        request,
+        "posts/tag_detail.html",
+        {"tag": tag, "posts": page_obj, "page_obj": page_obj},
+    )
 
 
 @login_required
@@ -181,11 +193,14 @@ def feed(request):
     else:
         posts = Post.objects.none()
 
+    page_obj = paginate(request, posts)
+
     return render(
         request,
         "posts/feed.html",
         {
-            "posts": posts,
+            "posts": page_obj,
+            "page_obj": page_obj,
             "acting": acting,
             "my_profiles": request.user.profiles.all(),
         },

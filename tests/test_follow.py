@@ -143,3 +143,20 @@ def test_profile_detail_shows_unfollow_when_following(client, user, mine, theirs
     response = client.get(reverse("profile-detail", args=[theirs.id]))
 
     assert response.context["profile"].is_followed is True
+
+
+@pytest.mark.django_db
+def test_profile_detail_counts_are_not_inflated(client, user, mine, theirs):
+    third = User.objects.create_user(email="third@example.com", password="SecurePass123!")
+    third_profile = Profile.objects.create(user=third, full_name="Third")
+
+    Follow.objects.create(follower=mine, followed=theirs)
+    Follow.objects.create(follower=third_profile, followed=theirs)
+    Follow.objects.create(follower=theirs, followed=mine)
+
+    client.force_login(user)
+    response = client.get(reverse("profile-detail", args=[theirs.id]))
+
+    profile = response.context["profile"]
+    assert profile.followers_count == 2
+    assert profile.following_count == 1

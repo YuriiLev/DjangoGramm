@@ -1,6 +1,6 @@
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.db.models import Exists, OuterRef
+from django.db.models import Count, Exists, OuterRef
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse_lazy
@@ -35,7 +35,10 @@ class ProfileDetailView(LoginRequiredMixin, DetailView):
     context_object_name = "profile"
 
     def get_queryset(self):
-        qs = Profile.objects.select_related("user")
+        qs = Profile.objects.select_related("user").annotate(
+            followers_count=Count("followers", distinct=True),
+            following_count=Count("following", distinct=True),
+        )
         acting = get_acting_profile(self.request)
         if acting:
             followed = Follow.objects.filter(follower=acting, followed=OuterRef("pk"))
@@ -95,6 +98,7 @@ class DiscoverListView(LoginRequiredMixin, ListView):
     model = Profile
     template_name = "profiles/discover.html"
     context_object_name = "profiles"
+    paginate_by = 20
 
     def get_queryset(self):
         acting = get_acting_profile(self.request)

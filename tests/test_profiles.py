@@ -219,3 +219,13 @@ def test_profile_list_shows_only_own_profiles(client, user, other_user):
 
     assert "Mine" in content
     assert "Theirs" not in content
+
+
+@pytest.mark.django_db
+def test_profile_detail_query_count_is_stable(client, user, other_user, django_assert_num_queries):
+    profile = Profile.objects.create(user=other_user, full_name="Theirs")
+    Profile.objects.create(user=user, full_name="Mine")
+    client.force_login(user)
+
+    with django_assert_num_queries(6):
+        client.get(reverse("profile-detail", args=[profile.pk]))
