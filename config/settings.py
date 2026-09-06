@@ -35,6 +35,9 @@ INSTALLED_APPS = [
     "django.contrib.sites",
     "allauth",
     "allauth.account",
+    "allauth.socialaccount",
+    "allauth.socialaccount.providers.github",
+    "allauth.socialaccount.providers.google",
     "accounts",
     "profiles",
     "posts",
@@ -121,6 +124,32 @@ ACCOUNT_CONFIRM_EMAIL_ON_GET = True
 ACCOUNT_LOGOUT_ON_GET = False
 ACCOUNT_LOGOUT_REDIRECT_URL = "/accounts/login/"
 
+SOCIALACCOUNT_PROVIDERS = {
+    "github": {
+        "APPS": [
+            {
+                "client_id": os.environ.get("GITHUB_CLIENT_ID", ""),
+                "secret": os.environ.get("GITHUB_CLIENT_SECRET", ""),
+                "key": "",
+            }
+        ],
+        "SCOPE": ["user:email"],
+    },
+    "google": {
+        "APPS": [
+            {
+                "client_id": os.environ.get("GOOGLE_CLIENT_ID", ""),
+                "secret": os.environ.get("GOOGLE_CLIENT_SECRET", ""),
+                "key": "",
+            }
+        ],
+        "SCOPE": ["profile", "email"],
+        "AUTH_PARAMS": {"access_type": "online"},
+    },
+}
+
+SOCIALACCOUNT_EMAIL_AUTHENTICATION = True
+SOCIALACCOUNT_EMAIL_AUTHENTICATION_AUTO_CONNECT = True
 
 # Email
 

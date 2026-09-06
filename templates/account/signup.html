@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load socialaccount %}
 
 {% block title %}Sign up — DjangoGramm{% endblock %}
 
@@ -40,6 +41,14 @@
 
                     <button type="submit" class="btn btn-primary w-100">Sign up</button>
                 </form>
+
+                <hr class="my-4">
+
+                <a href="{% provider_login_url 'github' process='login' %}"
+                   class="btn btn-dark w-100">Continue with GitHub</a>
+
+                <a href="{% provider_login_url 'google' process='login' %}"
+                   class="btn btn-outline-secondary w-100 mt-2">Continue with Google</a>
 
                 <hr class="my-4">
 
