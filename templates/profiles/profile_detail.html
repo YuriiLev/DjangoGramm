@@ -20,7 +20,7 @@
                     <div>
                         <h1 class="h4 mb-1">{{ profile.full_name }}</h1>
                         <p class="text-muted small mb-0">
-                            {{ profile.followers.count }} followers · {{ profile.following.count }} following
+                            {{ profile.followers_count }} followers · {{ profile.following_count }} following
                         </p>
                     </div>
                 </div>
@@ -39,7 +39,7 @@
                            class="btn btn-sm {% if profile.is_followed %}btn-secondary{% else %}btn-primary{% endif %}"
                            data-follow-url="{% url 'toggle-follow' profile.pk acting.id %}">
                             <span class="follow-label">{% if profile.is_followed %}Unfollow{% else %}Follow{% endif %}</span>
-                            <span class="follow-count">{{ profile.followers.count }}</span>
+                            <span class="follow-count">{{ profile.followers_count }}</span>
                         </a>
                     </p>
                 {% endif %}
