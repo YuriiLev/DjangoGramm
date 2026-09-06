@@ -11,7 +11,7 @@
             <div class="card-body p-4">
                 <div class="d-flex align-items-center mb-3">
                     {% if post.profile.avatar %}
-                        <img src="{{ post.profile.avatar.url }}" alt=""
+                        <img src="{{ post.profile.avatar_thumb_url }}" alt=""
                              class="rounded-circle me-2" style="width: 40px; height: 40px; object-fit: cover;">
                     {% else %}
                         <div class="rounded-circle bg-secondary me-2" style="width: 40px; height: 40px;"></div>
@@ -30,7 +30,7 @@
                 {% endif %}
 
                 {% for image in post.images.all %}
-                    <img src="{{ image.image.url }}" alt="" class="img-fluid rounded mb-2">
+                    <img src="{{ image.full_url }}" alt="" class="img-fluid rounded mb-2">
                 {% endfor %}
 
                 {% if post.tags.all %}

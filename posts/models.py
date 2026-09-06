@@ -1,5 +1,6 @@
 from django.db import models
 
+from config.images import POST_COVER, POST_FULL, transform
 from profiles.models import Profile
 
 
@@ -26,6 +27,14 @@ class PostImage(models.Model):
 
     def __str__(self):
         return f"Image for {self.post}"
+
+    @property
+    def cover_url(self):
+        return transform(self.image.url, POST_COVER)
+
+    @property
+    def full_url(self):
+        return transform(self.image.url, POST_FULL)
 
 
 class Tag(models.Model):

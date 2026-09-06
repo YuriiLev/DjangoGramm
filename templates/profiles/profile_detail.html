@@ -11,7 +11,7 @@
             <div class="card-body p-4">
                 <div class="d-flex align-items-center mb-3">
                     {% if profile.avatar %}
-                        <img src="{{ profile.avatar.url }}" alt="{{ profile.full_name }}"
+                        <img src="{{ profile.avatar_thumb_url }}" alt="{{ profile.full_name }}"
                              class="rounded-circle me-3" style="width: 80px; height: 80px; object-fit: cover;">
                     {% else %}
                         <div class="rounded-circle bg-secondary me-3" style="width: 80px; height: 80px;"></div>

@@ -1,9 +1,16 @@
 from django import forms
 
-from .models import Post, Tag
+from .models import Post
 
 
 class PostForm(forms.ModelForm):
+    new_tags = forms.CharField(
+        required=False,
+        label="New tags",
+        help_text="Comma-separated. Created if they don't exist yet.",
+        widget=forms.TextInput(attrs={"class": "form-control", "placeholder": "sunset, roadtrip"}),
+    )
+
     class Meta:
         model = Post
         fields = ["description"]
@@ -17,11 +24,13 @@ class PostForm(forms.ModelForm):
             ),
         }
 
+    def clean_new_tags(self):
+        raw = self.cleaned_data.get("new_tags", "")
+        names = {name.strip().lower() for name in raw.split(",")}
+        names.discard("")
 
-class TagForm(forms.ModelForm):
-    class Meta:
-        model = Tag
-        fields = ["name"]
-        widgets = {
-            "name": forms.TextInput(attrs={"class": "form-control", "placeholder": "Tag name"}),
-        }
+        too_long = [name for name in names if len(name) > 100]
+        if too_long:
+            raise forms.ValidationError("Tag names must be 100 characters or fewer.")
+
+        return sorted(names)

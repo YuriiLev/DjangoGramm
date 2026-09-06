@@ -406,3 +406,42 @@ def test_toggle_like_requires_login(client, profile):
 
     assert response.status_code == 302
     assert post.likes.count() == 0
+
+
+@pytest.mark.django_db
+def test_author_can_create_new_tag(client, user, profile):
+    client.force_login(user)
+
+    client.post(
+        reverse("post-create", args=[profile.id]),
+        {"description": "Hello", "new_tags": "sunset, roadtrip"},
+    )
+
+    post = Post.objects.get(description="Hello")
+    assert set(post.tags.values_list("name", flat=True)) == {"sunset", "roadtrip"}
+
+
+@pytest.mark.django_db
+def test_existing_tag_is_reused_not_duplicated(client, user, profile):
+    Tag.objects.create(name="sunset")
+    client.force_login(user)
+
+    client.post(
+        reverse("post-create", args=[profile.id]),
+        {"description": "Hello", "new_tags": "Sunset"},
+    )
+
+    assert Tag.objects.filter(name="sunset").count() == 1
+
+
+@pytest.mark.django_db
+def test_new_tags_are_normalised(client, user, profile):
+    client.force_login(user)
+
+    client.post(
+        reverse("post-create", args=[profile.id]),
+        {"description": "Hello", "new_tags": "  Beach ,, beach , "},
+    )
+
+    post = Post.objects.get(description="Hello")
+    assert list(post.tags.values_list("name", flat=True)) == ["beach"]

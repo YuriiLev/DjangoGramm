@@ -16,7 +16,7 @@
                     <a href="{% url 'post-detail' post.id %}">
                         {% with post.images.all|first as cover %}
                             {% if cover %}
-                                <img src="{{ cover.image.url }}" alt=""
+                                <img src="{{ cover.cover_url }}" alt=""
                                      class="card-img-top" style="height: 180px; object-fit: cover;">
                             {% endif %}
                         {% endwith %}

@@ -15,6 +15,14 @@ def paginate(request, queryset, per_page=12):
     return Paginator(queryset, per_page).get_page(request.GET.get("page"))
 
 
+def resolve_tags(form, request):
+    tags = list(Tag.objects.filter(id__in=request.POST.getlist("tags")))
+    for name in form.cleaned_data["new_tags"]:
+        tag, _ = Tag.objects.get_or_create(name=name)
+        tags.append(tag)
+    return tags
+
+
 @login_required
 def profile_posts(request, profile_id):
     profile = get_object_or_404(Profile.objects.select_related("user"), id=profile_id)
@@ -38,7 +46,6 @@ def post_create(request, profile_id):
 
     if request.method == "POST":
         form = PostForm(request.POST)
-        tag_ids = request.POST.getlist("tags")
         images = request.FILES.getlist("images")
 
         if form.is_valid():
@@ -46,7 +53,7 @@ def post_create(request, profile_id):
             post.profile = profile
             post.save()
 
-            post.tags.set(Tag.objects.filter(id__in=tag_ids))
+            post.tags.set(resolve_tags(form, request))
 
             for image in images:
                 PostImage.objects.create(post=post, image=image)
