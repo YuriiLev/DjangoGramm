@@ -96,3 +96,14 @@ def test_feed_requires_login(client):
     response = client.get(reverse("home"))
 
     assert response.status_code == 302
+
+
+@pytest.mark.django_db
+def test_feed_query_count_is_stable(client, user, mine, theirs, django_assert_num_queries):
+    Follow.objects.create(follower=mine, followed=theirs)
+    for i in range(10):
+        Post.objects.create(profile=theirs, description=f"Post {i}")
+    client.force_login(user)
+
+    with django_assert_num_queries(9):
+        client.get(reverse("home"))
