@@ -98,6 +98,7 @@ class DiscoverListView(LoginRequiredMixin, ListView):
     model = Profile
     template_name = "profiles/discover.html"
     context_object_name = "profiles"
+    paginate_by = 20
 
     def get_queryset(self):
         acting = get_acting_profile(self.request)
