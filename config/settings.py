@@ -6,9 +6,9 @@ https://docs.djangoproject.com/en/5.2/topics/settings/
 """
 
 import os
-import dj_database_url
 from pathlib import Path
 
+import dj_database_url
 from dotenv import load_dotenv
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -83,9 +83,7 @@ SITE_ID = 1
 DATABASE_URL = os.environ.get("DATABASE_URL", "")
 
 if DATABASE_URL:
-    DATABASES = {
-        "default": dj_database_url.parse(DATABASE_URL, conn_max_age=600, ssl_require=True)
-    }
+    DATABASES = {"default": dj_database_url.parse(DATABASE_URL, conn_max_age=600)}
 else:
     DATABASES = {
         "default": {
