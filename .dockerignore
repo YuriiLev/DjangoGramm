@@ -5,6 +5,7 @@ node_modules/
 staticfiles/
 media/
 .env
+env.yaml
 .env.*
 !.env.example
 __pycache__/
