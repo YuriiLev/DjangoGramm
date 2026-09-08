@@ -13,3 +13,9 @@ def use_local_file_storage(settings, tmp_path):
         },
     }
     settings.MEDIA_ROOT = tmp_path
+
+
+@pytest.fixture(autouse=True)
+def disable_ssl_redirect(settings):
+    """Tests use the HTTP test client; the HTTPS redirect belongs to production."""
+    settings.SECURE_SSL_REDIRECT = False
